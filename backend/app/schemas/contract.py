@@ -50,6 +50,8 @@ class ContractRead(ContractBase):
 class ContractRenewalHistoryItem(BaseModel):
     id: int
     contract_no: str
+    tenant_name: str
+    tenant_contact: str
     start_date: date
     end_date: date
     monthly_rent: float
