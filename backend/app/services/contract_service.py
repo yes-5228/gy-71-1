@@ -82,6 +82,10 @@ def renew_contract(db: Session, contract_id: int, payload: ContractRenew) -> Con
 
     original.status = "renewed"
 
+    workstation = db.get(Workstation, original.workstation_id)
+    if workstation:
+        workstation.status = "leased"
+
     db.add(new_contract)
     db.commit()
     db.refresh(new_contract)
@@ -89,14 +93,32 @@ def renew_contract(db: Session, contract_id: int, payload: ContractRenew) -> Con
 
 
 def get_renewal_history(db: Session, contract_id: int) -> list[Contract]:
-    contract = get_contract(db, contract_id)
+    contract = db.get(Contract, contract_id)
     if not contract:
         raise ValueError("contract_not_found")
 
+    chain_ids = set()
+    current = contract
+    while current is not None:
+        chain_ids.add(current.id)
+        if current.parent_contract_id is not None:
+            current = db.get(Contract, current.parent_contract_id)
+        else:
+            current = None
+
+    while True:
+        child_stmt = select(Contract).where(Contract.parent_contract_id.in_(chain_ids))
+        children = list(db.scalars(child_stmt).all())
+        new_ids = {c.id for c in children} - chain_ids
+        if not new_ids:
+            break
+        chain_ids.update(new_ids)
+
     stmt = (
         select(Contract)
-        .where(Contract.workstation_id == contract.workstation_id)
-        .order_by(Contract.start_date.asc(), Contract.signed_at.asc())
+        .options(joinedload(Contract.workstation))
+        .where(Contract.id.in_(chain_ids))
+        .order_by(Contract.start_date.asc())
     )
     return list(db.scalars(stmt).all())
 
