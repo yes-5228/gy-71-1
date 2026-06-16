@@ -15,6 +15,7 @@ export function statusText(value) {
     active: '履行中',
     terminated: '已终止',
     expired: '已到期',
+    renewed: '已续租',
     unpaid: '待收',
     paid: '已收',
     overdue: '逾期'

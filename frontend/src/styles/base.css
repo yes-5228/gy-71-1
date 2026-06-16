@@ -215,9 +215,10 @@ td small {
 
 .status-maintenance,
 .status-terminated,
-.status-reserved {
-  background: #edf1f5;
-  color: #4b5966;
+.status-reserved,
+.status-renewed {
+  background: #e8eaf6;
+  color: #3949ab;
 }
 
 .split-grid {

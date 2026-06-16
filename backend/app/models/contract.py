@@ -20,6 +20,12 @@ class Contract(Base):
     deposit: Mapped[float] = mapped_column(Numeric(10, 2), default=0)
     status: Mapped[str] = mapped_column(String(24), default="active", index=True)
     signed_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    parent_contract_id: Mapped[int | None] = mapped_column(
+        ForeignKey("contracts.id"), nullable=True, index=True
+    )
+    renewal_count: Mapped[int] = mapped_column(Integer, default=0)
 
     workstation = relationship("Workstation", back_populates="contracts")
     payments = relationship("Payment", back_populates="contract", cascade="all, delete-orphan")
+    parent_contract = relationship("Contract", remote_side=[id], back_populates="renewal_contracts")
+    renewal_contracts = relationship("Contract", back_populates="parent_contract")
